@@ -21,17 +21,55 @@ export function Cta() {
   });
   
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSubmitted(true);
+    setIsSubmitting(true);
+    setSubmitError(null);
     
-    // Here you would typically send the form data to your backend
-    console.log("Form submitted:", formData);
+    try {
+      // Map form data to admin app's quote structure
+      const quoteData = {
+        customerName: formData.name,
+        customerEmail: formData.email,
+        customerPhone: formData.phone,
+        serviceAddress: formData.address,
+        rampHeight: formData.height ? parseInt(formData.height) : undefined,
+        timeline: formData.timeline,
+        notes: `Quote request from website - ${formData.timeline} timeline. Height: ${formData.height} inches.`,
+        source: 'website',
+        priority: formData.timeline === 'asap' ? 'high' : 'normal'
+      };
+
+      // Submit to admin app's API
+      const response = await fetch(`${process.env.NEXT_PUBLIC_ADMIN_API_URL}/api/quotes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(quoteData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit quote request');
+      }
+
+      const result = await response.json();
+      console.log('Quote created:', result.data?.id);
+      
+      setSubmitted(true);
+    } catch (error) {
+      console.error('Failed to submit quote:', error);
+      setSubmitError('Unable to submit your request. Please try again or call us directly.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -198,62 +236,17 @@ export function Cta() {
                           <DialogHeader>
                             <DialogTitle>How to Measure Ramp Height</DialogTitle>
                             <DialogDescription>
-                              Simple measurement from ground to door
+                              Measure from the ground to the top of the step or threshold where the ramp will be installed. 
+                              If you&apos;re not sure, we&apos;ll help you measure during our consultation call.
                             </DialogDescription>
                           </DialogHeader>
-                          <div className="space-y-6">
-                            {/* Simple Instructions */}
-                            <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                              <h3 className="font-semibold text-lg mb-4 text-center">3 Easy Steps</h3>
-                              <div className="space-y-5">
-                                <div className="flex items-center gap-4">
-                                  <div className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold flex-shrink-0">1</div>
-                                  <div>
-                                    <p className="font-medium">Go to your door</p>
-                                    <p className="text-sm text-gray-600">Stand where the ramp will be installed</p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                  <div className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold flex-shrink-0">2</div>
-                                  <div>
-                                    <p className="font-medium">Measure up</p>
-                                    <p className="text-sm text-gray-600">From ground to the bottom of your door frame</p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                  <div className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold flex-shrink-0">3</div>
-                                  <div>
-                                    <p className="font-medium">Enter inches</p>
-                                    <p className="text-sm text-gray-600">Type the number (like 18 or 24)</p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Common Heights */}
-                            <div className="bg-gray-50 p-4 rounded-lg">
-                              <h4 className="font-medium text-sm mb-2">Common Heights:</h4>
-                              <div className="grid grid-cols-3 gap-2 text-xs">
-                                <div className="text-center p-2 bg-white rounded border">
-                                  <div className="font-bold">18&quot;</div>
-                                  <div className="text-gray-600">1 step</div>
-                                </div>
-                                <div className="text-center p-2 bg-white rounded border">
-                                  <div className="font-bold">24&quot;</div>
-                                  <div className="text-gray-600">2 steps</div>
-                                </div>
-                                <div className="text-center p-2 bg-white rounded border">
-                                  <div className="font-bold">36&quot;</div>
-                                  <div className="text-gray-600">3 steps</div>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Not sure option */}
-                            <div className="bg-green-50 border border-green-200 p-3 rounded-md">
-                              <p className="text-sm font-medium text-green-800">Not sure? No problem!</p>
-                              <p className="text-sm text-green-700">
-                                Leave this blank and we&apos;ll help you measure when we call.
+                          <div className="space-y-4">
+                            <div className="bg-muted p-4 rounded-md">
+                              <p className="text-sm">
+                                <strong>Common heights:</strong>
+                                <br />• Single step: 6-8 inches
+                                <br />• Double step: 12-16 inches
+                                <br />• Porch/deck: 24-36 inches
                               </p>
                             </div>
                           </div>
@@ -263,17 +256,30 @@ export function Cta() {
                     <Input 
                       id="height" 
                       type="number"
-                      placeholder="e.g., 18" 
+                      placeholder="e.g., 24" 
                       value={formData.height}
                       onChange={(e) => handleInputChange("height", e.target.value)}
                       className="h-11 sm:h-12"
+                      min="1"
+                      max="60"
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Optional - we can help measure during our call
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <Button type="submit" size="lg" className="w-full h-12 sm:h-14 text-base sm:text-lg font-semibold">
-                {formData.height.trim() ? "Get My Instant Quote" : "Get My Free Quote"}
+              {submitError && (
+                <Alert className="border-red-200 bg-red-50">
+                  <AlertDescription className="text-red-800">
+                    {submitError}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <Button type="submit" size="lg" className="w-full h-12 sm:h-14 text-base sm:text-lg font-semibold" disabled={isSubmitting}>
+                {isSubmitting ? "Submitting..." : formData.height.trim() ? "Get My Instant Quote" : "Get My Free Quote"}
               </Button>
             </form>
 

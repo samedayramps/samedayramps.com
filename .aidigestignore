@@ -1,0 +1,52 @@
+# Build artifacts and output directories
+out/
+.next/
+dist/
+build/
+
+# Dependencies
+node_modules/
+
+# Documentation files (keeping only essential ones)
+WEBSITE_PLAN.md
+WEBSITE_STRATEGY.md
+TECHNICAL_APPROACH.md
+IMAGE_GUIDE.md
+MODERN_BEST_PRACTICES_SUMMARY.md
+GOOGLE_MAPS_SETUP.md
+
+# Large image files
+*.jpg
+*.jpeg
+*.png
+*.webp
+*.gif
+*.ico
+public/residential_installation.jpg
+public/hero.webp
+public/hospital_discharge.webp
+public/commercial_solution.webp
+public/temporary_access.webp
+
+# Version control and editor files
+.git/
+.gitignore
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+
+# Package lock files (keeping package.json)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# UI components (shadcn/ui components)
+src/components/ui/ 
