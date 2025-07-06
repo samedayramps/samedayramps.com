@@ -170,8 +170,8 @@ export default function PostSurgeryRamps() {
 
               <Card className="p-6">
                 <p className="text-lg leading-relaxed mb-4">
-                  "I was so worried about my husband using a flimsy DIY ramp after his surgery. 
-                  The quality and professional installation from Same Day Ramps gave us both incredible peace of mind."
+                  &quot;I was so worried about my husband using a flimsy DIY ramp after his surgery. 
+                  The quality and professional installation from Same Day Ramps gave us both incredible peace of mind.&quot;
                 </p>
                 <div className="font-semibold">— S. Williams, Fort Worth</div>
               </Card>
@@ -232,7 +232,7 @@ export default function PostSurgeryRamps() {
         <section className="py-16 sm:py-20 lg:py-24 bg-primary/5">
           <div className="container mx-auto px-4 md:px-6 text-center">
             <h2 className="text-3xl sm:text-5xl font-bold tracking-tighter mb-6">
-              Don't Let Stairs Delay Recovery
+              Don&apos;t Let Stairs Delay Recovery
             </h2>
             <p className="text-lg leading-relaxed mb-8 max-w-2xl mx-auto">
               Hospital discharge waiting on home access? Get a professional ramp installed in 24 hours. 
