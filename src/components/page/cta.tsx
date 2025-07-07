@@ -47,12 +47,12 @@ export function Cta() {
         priority: formData.timeline === 'asap' ? 'high' : 'normal'
       };
 
-      const apiUrl = `${process.env.NEXT_PUBLIC_ADMIN_API_URL}/api/quotes`;
+      const apiUrl = `${process.env.NEXT_PUBLIC_ADMIN_API_URL}/api/proxy/?path=/quotes`;
       
       // Comprehensive logging
       console.log('🚀 Starting quote submission...');
       console.log('📍 Environment:', process.env.NODE_ENV);
-      console.log('🌐 API URL:', apiUrl);
+      console.log('🌐 API URL (using proxy):', apiUrl);
       console.log('📊 Quote data:', quoteData);
       console.log('🔗 Current origin:', window.location.origin);
       console.log('🏠 Current hostname:', window.location.hostname);
@@ -62,7 +62,7 @@ export function Cta() {
       console.log('🔍 Testing admin API connectivity...');
       
       try {
-        const healthCheck = await fetch(`${process.env.NEXT_PUBLIC_ADMIN_API_URL}/health`, {
+        const healthCheck = await fetch(`${process.env.NEXT_PUBLIC_ADMIN_API_URL}/api/health/`, {
           method: 'GET',
           mode: 'cors'
         });
@@ -73,9 +73,9 @@ export function Cta() {
         console.warn('⚠️ This might indicate CORS or connectivity issues');
       }
 
-      console.log('📤 Submitting quote request...');
+      console.log('📤 Submitting quote request via proxy...');
       
-      // Submit to admin app's API
+      // Submit to admin app's API via proxy
       const response = await fetch(apiUrl, {
         method: 'POST',
         mode: 'cors',

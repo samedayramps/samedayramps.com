@@ -43,7 +43,7 @@ export default function DebugPage() {
     // Test 2: Basic Connectivity
     console.log('🧪 Testing basic connectivity...');
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_ADMIN_API_URL}/health`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_ADMIN_API_URL}/api/health/`, {
         method: 'GET',
         mode: 'cors'
       });
@@ -70,10 +70,10 @@ export default function DebugPage() {
       });
     }
 
-    // Test 3: CORS Preflight
-    console.log('🧪 Testing CORS preflight...');
+    // Test 3: CORS Preflight (via proxy)
+    console.log('🧪 Testing CORS preflight via proxy...');
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_ADMIN_API_URL}/api/quotes`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_ADMIN_API_URL}/api/proxy/?path=/quotes`, {
         method: 'OPTIONS',
         mode: 'cors',
         headers: {
@@ -83,7 +83,7 @@ export default function DebugPage() {
       });
       
       testResults.push({
-        test: 'CORS Preflight',
+        test: 'CORS Preflight (via proxy)',
         status: 'success',
         message: `Preflight successful (${response.status})`,
         details: {
@@ -99,15 +99,15 @@ export default function DebugPage() {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       testResults.push({
-        test: 'CORS Preflight',
+        test: 'CORS Preflight (via proxy)',
         status: 'error',
         message: `Preflight failed: ${errorMessage}`,
         details: { error: error instanceof Error ? error.stack : error }
       });
     }
 
-    // Test 4: Actual API Call
-    console.log('🧪 Testing actual API call...');
+    // Test 4: Actual API Call (via proxy)
+    console.log('🧪 Testing actual API call via proxy...');
     try {
       const testData = {
         customerName: 'Test Customer',
@@ -119,7 +119,7 @@ export default function DebugPage() {
         source: 'debug'
       };
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_ADMIN_API_URL}/api/quotes`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_ADMIN_API_URL}/api/proxy/?path=/quotes`, {
         method: 'POST',
         mode: 'cors',
         credentials: 'omit',
@@ -133,7 +133,7 @@ export default function DebugPage() {
       if (response.ok) {
         const result = await response.json();
         testResults.push({
-          test: 'API Call',
+          test: 'API Call (via proxy)',
           status: 'success',
           message: `Quote API call successful (${response.status})`,
           details: {
@@ -145,7 +145,7 @@ export default function DebugPage() {
       } else {
         const errorText = await response.text();
         testResults.push({
-          test: 'API Call',
+          test: 'API Call (via proxy)',
           status: 'error',
           message: `API call failed: ${response.status} ${response.statusText}`,
           details: {
@@ -159,7 +159,7 @@ export default function DebugPage() {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       testResults.push({
-        test: 'API Call',
+        test: 'API Call (via proxy)',
         status: 'error',
         message: `API call failed: ${errorMessage}`,
         details: { error: error instanceof Error ? error.stack : error }
