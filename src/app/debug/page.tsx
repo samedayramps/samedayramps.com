@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { submitQuoteRequest, checkApiHealth, type QuoteFormData } from "@/lib/api/quote-requests";
 
 export default function DebugPage() {
   const [results, setResults] = useState<Array<{
@@ -43,21 +44,15 @@ export default function DebugPage() {
     // Test 2: Basic Connectivity
     console.log('🧪 Testing basic connectivity...');
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_ADMIN_API_URL}/api/health/`, {
-        method: 'GET',
-        mode: 'cors'
-      });
+      const isHealthy = await checkApiHealth();
       
       testResults.push({
         test: 'Basic Connectivity',
-        status: 'success',
-        message: `Health check successful (${response.status})`,
+        status: isHealthy ? 'success' : 'error',
+        message: isHealthy ? 'Health check successful' : 'Health check failed',
         details: {
-          status: response.status,
-          statusText: response.statusText,
-          headers: [...response.headers.entries()],
-          url: response.url,
-          redirected: response.redirected
+          healthy: isHealthy,
+          apiUrl: `${process.env.NEXT_PUBLIC_ADMIN_API_URL}/api/health/`
         }
       });
     } catch (error) {
@@ -109,53 +104,26 @@ export default function DebugPage() {
     // Test 4: Actual API Call (dedicated endpoint)
     console.log('🧪 Testing actual API call to dedicated endpoint...');
     try {
-      const testData = {
-        customerName: 'Test Customer',
-        customerEmail: 'test@example.com',
-        customerPhone: '123-456-7890',
-        serviceAddress: 'Test Address',
+      const testData: QuoteFormData = {
+        name: 'Test Customer',
+        email: 'test@example.com',
+        phone: '123-456-7890',
+        address: 'Test Address',
         timeline: 'flexible',
-        notes: 'Test quote from debug page',
-        source: 'debug'
+        height: '24'
       };
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_ADMIN_API_URL}/api/quote-requests/`, {
-        method: 'POST',
-        mode: 'cors',
-        credentials: 'omit',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify(testData),
+      const result = await submitQuoteRequest(testData);
+      
+      testResults.push({
+        test: 'API Call (dedicated endpoint)',
+        status: 'success',
+        message: 'Quote API call successful',
+        details: {
+          response: result,
+          quoteId: result.data?.id
+        }
       });
-
-      if (response.ok) {
-        const result = await response.json();
-        testResults.push({
-          test: 'API Call (dedicated endpoint)',
-          status: 'success',
-          message: `Quote API call successful (${response.status})`,
-          details: {
-            status: response.status,
-            response: result,
-            quoteId: result.data?.id
-          }
-        });
-      } else {
-        const errorText = await response.text();
-        testResults.push({
-          test: 'API Call (dedicated endpoint)',
-          status: 'error',
-          message: `API call failed: ${response.status} ${response.statusText}`,
-          details: {
-            status: response.status,
-            statusText: response.statusText,
-            response: errorText,
-            headers: [...response.headers.entries()]
-          }
-        });
-      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       testResults.push({
