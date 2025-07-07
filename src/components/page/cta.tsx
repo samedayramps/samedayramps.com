@@ -47,26 +47,96 @@ export function Cta() {
         priority: formData.timeline === 'asap' ? 'high' : 'normal'
       };
 
+      const apiUrl = `${process.env.NEXT_PUBLIC_ADMIN_API_URL}/api/quotes`;
+      
+      // Comprehensive logging
+      console.log('🚀 Starting quote submission...');
+      console.log('📍 Environment:', process.env.NODE_ENV);
+      console.log('🌐 API URL:', apiUrl);
+      console.log('📊 Quote data:', quoteData);
+      console.log('🔗 Current origin:', window.location.origin);
+      console.log('🏠 Current hostname:', window.location.hostname);
+      console.log('🌍 User agent:', navigator.userAgent);
+
+      // Test if the admin API is reachable with a simple request first
+      console.log('🔍 Testing admin API connectivity...');
+      
+      try {
+        const healthCheck = await fetch(`${process.env.NEXT_PUBLIC_ADMIN_API_URL}/health`, {
+          method: 'GET',
+          mode: 'cors'
+        });
+        console.log('✅ Health check response status:', healthCheck.status);
+        console.log('✅ Health check response headers:', [...healthCheck.headers.entries()]);
+      } catch (healthError) {
+        console.warn('⚠️ Health check failed:', healthError);
+        console.warn('⚠️ This might indicate CORS or connectivity issues');
+      }
+
+      console.log('📤 Submitting quote request...');
+      
       // Submit to admin app's API
-      const response = await fetch(`${process.env.NEXT_PUBLIC_ADMIN_API_URL}/api/quotes`, {
+      const response = await fetch(apiUrl, {
         method: 'POST',
+        mode: 'cors',
+        credentials: 'omit',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify(quoteData),
       });
 
+      console.log('📥 Response received:');
+      console.log('📊 Status:', response.status);
+      console.log('📊 Status text:', response.statusText);
+      console.log('📊 Headers:', [...response.headers.entries()]);
+      console.log('📊 URL:', response.url);
+      console.log('📊 Redirected:', response.redirected);
+      console.log('📊 Type:', response.type);
+
       if (!response.ok) {
-        throw new Error('Failed to submit quote request');
+        const errorText = await response.text();
+        console.error('❌ Error response body:', errorText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
       }
 
-      const result = await response.json();
-      console.log('Quote created:', result.data?.id);
+      let result;
+      try {
+        result = await response.json();
+        console.log('✅ Parsed response:', result);
+      } catch (parseError) {
+        console.error('❌ Failed to parse response as JSON:', parseError);
+        const textResponse = await response.text();
+        console.error('❌ Response text:', textResponse);
+        throw new Error('Invalid JSON response from server');
+      }
+
+      console.log('🎉 Quote created successfully:', result.data?.id);
       
       setSubmitted(true);
     } catch (error) {
-      console.error('Failed to submit quote:', error);
-      setSubmitError('Unable to submit your request. Please try again or call us directly.');
+      console.error('💥 Quote submission failed:');
+      console.error('💥 Error:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      const errorName = error instanceof Error ? error.name : 'Unknown';
+      
+      console.error('💥 Error type:', errorName);
+      console.error('💥 Error message:', errorMessage);
+      if (error instanceof Error && error.stack) {
+        console.error('💥 Error stack:', error.stack);
+      }
+      
+      if (errorName === 'TypeError' && errorMessage.includes('Failed to fetch')) {
+        console.error('💥 This is likely a CORS or network connectivity issue');
+        setSubmitError('Unable to connect to our servers. This might be a temporary network issue. Please try again in a few moments or call us directly.');
+      } else if (errorMessage.includes('CORS')) {
+        console.error('💥 CORS policy error detected');
+        setSubmitError('There was a configuration issue with our servers. Please call us directly and we\'ll take your information over the phone.');
+      } else {
+        setSubmitError(`Unable to submit your request: ${errorMessage}. Please try again or call us directly.`);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -274,6 +344,17 @@ export function Cta() {
                 <Alert className="border-red-200 bg-red-50">
                   <AlertDescription className="text-red-800">
                     {submitError}
+                    {process.env.NODE_ENV === 'development' && (
+                      <details className="mt-2 text-xs">
+                        <summary className="cursor-pointer font-semibold">Debug Info</summary>
+                        <div className="mt-1 p-2 bg-gray-100 rounded text-gray-700">
+                          <div>API URL: {process.env.NEXT_PUBLIC_ADMIN_API_URL}</div>
+                          <div>Origin: {typeof window !== 'undefined' ? window.location.origin : 'N/A'}</div>
+                          <div>Environment: {process.env.NODE_ENV}</div>
+                          <div>Time: {new Date().toISOString()}</div>
+                        </div>
+                      </details>
+                    )}
                   </AlertDescription>
                 </Alert>
               )}
